@@ -1,6 +1,6 @@
 # Nihongo 1000
 
-Học 1.000 từ tiếng Nhật từ PDF được cung cấp, chia thành 50 bài theo thứ tự gốc.
+Học 1.000 từ tiếng Nhật từ PDF được cung cấp, chia thành 14 chủ đề, mỗi bài tối đa 20 từ. Chọn **Tất cả theo thứ tự gốc** để học theo 50 bài cũ.
 
 - Flashcard hiện cách đọc, nghĩa tiếng Việt, Hán Việt và câu ví dụ khi lật thẻ.
 - Trắc nghiệm chọn nghĩa tiếng Việt và hiện điểm cuối bài.
@@ -21,7 +21,7 @@ Mở `index.html` bằng trình duyệt. Để có địa chỉ ổn định cho
 
 ## Cập nhật dữ liệu
 
-Ứng dụng dùng HTML, CSS và JavaScript thuần. Không cần cài gói để học. Dữ liệu nằm trong `words.js`. Mỗi mục giữ số thứ tự và trang PDF để đối chiếu. Cách đọc được ghép từ chữ in trên thẻ và furigana. Nghĩa, Hán Việt và câu ví dụ theo tài liệu gốc, chưa được duyệt ngôn ngữ độc lập.
+Ứng dụng dùng HTML, CSS và JavaScript thuần. Không cần cài gói để học. Dữ liệu nằm trong `words.js` và nhóm chủ đề nằm trong `topics.js`. Mỗi mục giữ số thứ tự và trang PDF để đối chiếu. Cách đọc được ghép từ chữ in trên thẻ và furigana. Nghĩa, Hán Việt và câu ví dụ theo tài liệu gốc, chưa được duyệt ngôn ngữ độc lập.
 
 Nếu cần trích lại từ chính PDF này, cài `PyMuPDF` rồi chạy:
 
