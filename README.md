@@ -8,6 +8,12 @@ Học 1.000 từ tiếng Nhật từ PDF được cung cấp, chia thành 14 ch�
 - Tra từ theo tiếng Nhật, kana hoặc nghĩa tiếng Việt có dấu hay không dấu.
 - Tiến độ lưu bằng localStorage trên từng trình duyệt. Phát âm phụ thuộc vào giọng tiếng Nhật có trên thiết bị.
 
+## Tiếng Nhật công sở
+
+Chọn **Công sở · 1.117 từ vựng** hoặc **Công sở · 128 mẫu câu**. Mỗi bộ giữ cách chia tình huống theo tài liệu và có tiến độ riêng. Furigana hiển thị theo các cụm được ghi chú trong PDF. Các mẫu do tài liệu cung cấp chưa qua duyệt độc lập.
+
+Chạy `python scripts/import_workplace.py vocab.pdf sentences.pdf` để nhập lại hai PDF công sở.
+
 ## Học trên máy
 
 Mở `index.html` bằng trình duyệt. Để có địa chỉ ổn định cho tiến độ, chạy `python -m http.server 8000` trong thư mục repo và mở `http://localhost:8000`.
