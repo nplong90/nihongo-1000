@@ -7,31 +7,66 @@ const screen = byId("screen");
 const lesson = byId("lesson");
 const topic = byId("topic");
 const lessonSize = 20;
-const topicByWord = new Map();
-const topicWords = new Map([["frequency", WORDS]]);
-for (const [key, , ids] of TOPICS) {
-  topicWords.set(key, []);
-  for (const id of ids) topicByWord.set(id, key);
+const collection = byId("collection");
+const collections = {
+  general: { words: WORDS, topics: TOPICS },
+  "work-vocab": WORK_VOCAB,
+  "work-sentences": WORK_SENTENCES,
+};
+let activeWords = WORDS;
+let topicWords = new Map();
+let unit = "từ";
+let storageKey = STORAGE_KEY;
+const progressByCollection = new Map();
+
+function selectCollection() {
+  const key = collection.value;
+  const selected = collections[key];
+  activeWords = selected.words;
+  unit = key === "work-sentences" ? "câu" : "từ";
+  storageKey = key === "general" ? STORAGE_KEY : STORAGE_KEY + ":" + key;
+  progress = progressByCollection.get(storageKey) || readProgress();
+  progressByCollection.set(storageKey, progress);
+
+  const topicByWord = new Map();
+  topicWords = new Map();
+  topic.replaceChildren();
+  for (const [id, , ids] of selected.topics) {
+    topicWords.set(id, []);
+    for (const wordId of ids) topicByWord.set(wordId, id);
+  }
+  for (const word of activeWords) topicWords.get(topicByWord.get(word.id) || "general").push(word);
+  topicWords.set("frequency", activeWords);
+  const allLabel = key === "general" ? "Tất cả theo thứ tự gốc" : "Tất cả tình huống";
+  for (const [id, label] of [...selected.topics, ["frequency", allLabel]]) {
+    const option = add(topic, "option", label + " (" + topicWords.get(id).length + ")");
+    option.value = id;
+  }
+  populateLessons();
+  updateProgress();
+  start();
 }
-for (const word of WORDS) topicWords.get(topicByWord.get(word.id) || "general").push(word);
 
 function populateLessons() {
   lesson.replaceChildren();
   const words = topicWords.get(topic.value);
   for (let first = 0; first < words.length; first += lessonSize) {
     const count = Math.min(lessonSize, words.length - first);
-    const option = add(lesson, "option", "Bài " + (first / lessonSize + 1) + " · " + count + " từ");
+    const option = add(lesson, "option", "Bài " + (first / lessonSize + 1) + " · " + count + " " + unit);
     option.value = first;
   }
 }
 const status = byId("status");
 let progress = {};
 let storageAvailable = true;
-try {
-  const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-  if (stored && typeof stored === "object" && !Array.isArray(stored)) progress = stored;
-} catch {
-  storageAvailable = false;
+function readProgress() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(storageKey) || "{}");
+    if (stored && typeof stored === "object" && !Array.isArray(stored)) return stored;
+  } catch {
+    storageAvailable = false;
+  }
+  return {};
 }
 
 let mode = "flash";
@@ -59,14 +94,15 @@ function button(parent, label, action, className) {
 
 function dueWords() {
   const now = Date.now();
-  return WORDS.filter(word => progress[word.id]?.due <= now);
+  return activeWords.filter(word => progress[word.id]?.due <= now);
 }
 
 function updateProgress() {
-  const studied = WORDS.filter(word => progress[word.id]).length;
+  const studied = activeWords.filter(word => progress[word.id]).length;
+  byId("progress").max = activeWords.length;
   byId("progress").value = studied;
-  byId("progressLabel").textContent = studied + " / 1.000 từ đã ôn";
-  byId("dueLabel").textContent = dueWords().length + " từ đến hạn";
+  byId("progressLabel").textContent = studied + " / " + activeWords.length.toLocaleString("vi-VN") + " " + unit + " đã ôn";
+  byId("dueLabel").textContent = dueWords().length + " " + unit + " đến hạn";
 }
 
 function grade(word, remembered) {
@@ -75,7 +111,7 @@ function grade(word, remembered) {
   const interval = [DAY / 144, DAY, 3 * DAY, 7 * DAY, 14 * DAY, 30 * DAY][level];
   progress[word.id] = { level, due: Date.now() + interval };
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    localStorage.setItem(storageKey, JSON.stringify(progress));
   } catch {
     storageAvailable = false;
   }
@@ -87,7 +123,7 @@ function speak(word) {
     status.textContent = "Trình duyệt này chưa hỗ trợ phát âm.";
     return;
   }
-  const utterance = new SpeechSynthesisUtterance(word.reading);
+  const utterance = new SpeechSynthesisUtterance(word.reading || word.word);
   utterance.lang = "ja-JP";
   const voice = speechSynthesis.getVoices().find(item => /^ja(?:-|_|$)/i.test(item.lang));
   if (voice) utterance.voice = voice;
@@ -100,11 +136,12 @@ function speak(word) {
 
 function answer(parent, word) {
   const area = add(parent, "div", "", "answer");
-  add(area, "p", word.reading, "reading").lang = "ja";
+  if (word.reading) add(area, "p", word.reading, "reading").lang = "ja";
+  if (word.furigana) add(area, "p", "Furigana · " + word.furigana, "reading");
   add(area, "strong", word.meaning);
   if (word.han && word.han !== "—") add(area, "p", "Hán Việt · " + word.han, "muted");
-  add(area, "p", word.example).lang = "ja";
-  add(area, "p", word.translation, "muted");
+  if (word.example) add(area, "p", word.example).lang = "ja";
+  if (word.translation) add(area, "p", word.translation, "muted");
   return area;
 }
 
@@ -146,7 +183,7 @@ function advance() {
 function showQuiz(panel, word) {
   if (!choices.length) {
     const sameTopic = topicWords.get(topic.value);
-    const pool = [...shuffle(deck), ...shuffle(sameTopic), ...WORDS];
+    const pool = [...shuffle(deck), ...shuffle(sameTopic), ...activeWords];
     const meanings = [...new Set(pool.map(item => item.meaning))].filter(text => text !== word.meaning);
     choices = shuffle([word.meaning, ...meanings.slice(0, 3)]);
   }
@@ -175,15 +212,15 @@ function showQuiz(panel, word) {
 function showBrowse(panel) {
   const search = add(panel, "input", "");
   search.type = "search";
-  search.placeholder = "Ví dụ 日本, にほん hoặc Nhật Bản";
-  search.setAttribute("aria-label", "Tìm từ tiếng Nhật hoặc nghĩa tiếng Việt");
+  search.placeholder = "Nhập chữ Nhật, kana hoặc nghĩa tiếng Việt";
+  search.setAttribute("aria-label", "Tìm tiếng Nhật hoặc nghĩa tiếng Việt");
   const results = add(panel, "div", "");
   const normalize = text => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d");
   function filter() {
     const query = normalize(search.value.trim());
-    const matches = query ? WORDS.filter(word => [word.word, word.reading, word.meaning].some(text => normalize(text).includes(query))) : WORDS;
+    const matches = query ? activeWords.filter(word => [word.word, word.reading, word.furigana, word.meaning].some(text => text && normalize(text).includes(query))) : activeWords;
     results.replaceChildren();
-    const info = add(results, "p", matches.length + " từ" + (matches.length > 40 ? " · đang hiện 40 từ đầu" : ""), "muted");
+    const info = add(results, "p", matches.length + " " + unit + (matches.length > 40 ? " · đang hiện 40 mục đầu" : ""), "muted");
     info.setAttribute("role", "status");
     for (const word of matches.slice(0, 40)) {
       const detail = add(results, "details", "");
@@ -208,7 +245,7 @@ function render() {
   }
   const word = deck[index];
   if (!word) {
-    add(panel, "h2", deck.length ? "Hoàn thành lượt học" : "Chưa có từ đến hạn ôn");
+    add(panel, "h2", deck.length ? "Hoàn thành lượt học" : "Chưa có " + unit + " đến hạn ôn");
     if (mode === "quiz") add(panel, "p", "Bạn trả lời đúng " + score + " / " + deck.length + " câu.");
     if (mode === "review") button(panel, "Học flashcard", () => start("flash"), "primary");
     else {
@@ -221,7 +258,7 @@ function render() {
     }
     return;
   }
-  add(panel, "p", "THẺ " + (index + 1) + " / " + deck.length + " · TỪ #" + word.id, "kicker");
+  add(panel, "p", "THẺ " + (index + 1) + " / " + deck.length + " · #" + word.id, "kicker");
   add(panel, "h2", word.word, "word").lang = "ja";
   if (mode === "quiz") {
     showQuiz(panel, word);
@@ -242,11 +279,7 @@ function render() {
   button(actions, "Bỏ qua", advance);
 }
 
-for (const [key, label] of [...TOPICS, ["frequency", "Tất cả theo thứ tự gốc"]]) {
-  const option = add(topic, "option", label + " (" + topicWords.get(key).length + ")");
-  option.value = key;
-}
-populateLessons();
+collection.addEventListener("change", selectCollection);
 topic.addEventListener("change", () => {
   populateLessons();
   start();
@@ -255,5 +288,4 @@ lesson.addEventListener("change", () => start());
 for (const tab of document.querySelectorAll("[data-mode]")) {
   tab.addEventListener("click", () => start(tab.dataset.mode));
 }
-updateProgress();
-start();
+selectCollection();
