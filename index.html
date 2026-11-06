@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f7f3ea">
+<title>Nihongo 1000 · Từ vựng tiếng Nhật</title>
+<link rel="stylesheet" href="./style.css">
+<script defer src="./words.js"></script>
+<script defer src="./study.js"></script>
+</head>
+<body>
+<div class="shell">
+<header>
+  <p class="eyebrow"><span lang="ja">日本語</span> <span> / </span> SỔ TAY TỪ VỰNG</p>
+  <h1>Nihongo <em>1000</em></h1>
+  <p class="intro">Học 20 từ mỗi bài, theo thứ tự tần suất trong tài liệu.</p>
+  <div class="meter"><span id="progressLabel"></span><span id="dueLabel"></span></div>
+  <progress id="progress" max="1000" value="0" aria-label="Tiến độ học"></progress>
+</header>
+<main>
+  <nav aria-label="Chế độ học">
+    <button data-mode="flash" aria-pressed="true">Flashcard</button>
+    <button data-mode="quiz" aria-pressed="false">Trắc nghiệm</button>
+    <button data-mode="review" aria-pressed="false">Đến hạn ôn</button>
+    <button data-mode="browse" aria-pressed="false">Tra từ</button>
+  </nav>
+  <div class="controls" id="lessonBar">
+    <label for="lesson">Chọn bài</label><select id="lesson"></select>
+  </div>
+  <section id="screen" aria-label="Nội dung học"></section>
+  <p id="status" role="status"></p>
+</main>
+<footer>Tiến độ lưu trên trình duyệt này. Phát âm dùng giọng tiếng Nhật của thiết bị.</footer>
+</div>
+</body>
+</html>
