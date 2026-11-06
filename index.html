@@ -7,14 +7,15 @@
 <title>Nihongo 1000 · Từ vựng tiếng Nhật</title>
 <link rel="stylesheet" href="./style.css">
 <script defer src="./words.js"></script>
-<script defer src="./study.js"></script>
+<script defer src="./topics.js"></script>
+<script defer src="./study.js?v=2"></script>
 </head>
 <body>
 <div class="shell">
 <header>
   <p class="eyebrow"><span lang="ja">日本語</span> <span> / </span> SỔ TAY TỪ VỰNG</p>
   <h1>Nihongo <em>1000</em></h1>
-  <p class="intro">Học 20 từ mỗi bài, theo thứ tự tần suất trong tài liệu.</p>
+  <p class="intro">Chọn một chủ đề, học tối đa 20 từ mỗi bài.</p>
   <div class="meter"><span id="progressLabel"></span><span id="dueLabel"></span></div>
   <progress id="progress" max="1000" value="0" aria-label="Tiến độ học"></progress>
 </header>
@@ -26,7 +27,8 @@
     <button data-mode="browse" aria-pressed="false">Tra từ</button>
   </nav>
   <div class="controls" id="lessonBar">
-    <label for="lesson">Chọn bài</label><select id="lesson"></select>
+    <label for="topic">Chủ đề</label><select id="topic"></select>
+    <label for="lesson">Bài học</label><select id="lesson"></select>
   </div>
   <section id="screen" aria-label="Nội dung học"></section>
   <p id="status" role="status"></p>
