@@ -5,6 +5,25 @@ const STORAGE_KEY = "nihongo-1000-v1";
 const byId = id => document.getElementById(id);
 const screen = byId("screen");
 const lesson = byId("lesson");
+const topic = byId("topic");
+const lessonSize = 20;
+const topicByWord = new Map();
+const topicWords = new Map([["frequency", WORDS]]);
+for (const [key, , ids] of TOPICS) {
+  topicWords.set(key, []);
+  for (const id of ids) topicByWord.set(id, key);
+}
+for (const word of WORDS) topicWords.get(topicByWord.get(word.id) || "general").push(word);
+
+function populateLessons() {
+  lesson.replaceChildren();
+  const words = topicWords.get(topic.value);
+  for (let first = 0; first < words.length; first += lessonSize) {
+    const count = Math.min(lessonSize, words.length - first);
+    const option = add(lesson, "option", "Bài " + (first / lessonSize + 1) + " · " + count + " từ");
+    option.value = first;
+  }
+}
 const status = byId("status");
 let progress = {};
 let storageAvailable = true;
@@ -100,8 +119,8 @@ function shuffle(items) {
 
 function start(nextMode = mode) {
   mode = nextMode;
-  const first = Number(lesson.value) * 20;
-  deck = mode === "review" ? dueWords() : WORDS.slice(first, first + 20);
+  const first = Number(lesson.value);
+  deck = mode === "review" ? dueWords() : topicWords.get(topic.value).slice(first, first + lessonSize);
   if (mode === "quiz") deck = shuffle(deck);
   index = 0;
   score = 0;
@@ -126,7 +145,9 @@ function advance() {
 
 function showQuiz(panel, word) {
   if (!choices.length) {
-    const meanings = [...new Set(shuffle(deck).map(item => item.meaning))].filter(text => text !== word.meaning);
+    const sameTopic = topicWords.get(topic.value);
+    const pool = [...shuffle(deck), ...shuffle(sameTopic), ...WORDS];
+    const meanings = [...new Set(pool.map(item => item.meaning))].filter(text => text !== word.meaning);
     choices = shuffle([word.meaning, ...meanings.slice(0, 3)]);
   }
   add(panel, "p", "Chọn nghĩa tiếng Việt.");
@@ -221,10 +242,15 @@ function render() {
   button(actions, "Bỏ qua", advance);
 }
 
-for (let i = 0; i < WORDS.length / 20; i++) {
-  const option = add(lesson, "option", "Bài " + (i + 1) + " · Từ " + (i * 20 + 1) + "–" + (i + 1) * 20);
-  option.value = i;
+for (const [key, label] of [...TOPICS, ["frequency", "Tất cả theo thứ tự gốc"]]) {
+  const option = add(topic, "option", label + " (" + topicWords.get(key).length + ")");
+  option.value = key;
 }
+populateLessons();
+topic.addEventListener("change", () => {
+  populateLessons();
+  start();
+});
 lesson.addEventListener("change", () => start());
 for (const tab of document.querySelectorAll("[data-mode]")) {
   tab.addEventListener("click", () => start(tab.dataset.mode));
