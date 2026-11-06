@@ -8,23 +8,33 @@
 <link rel="stylesheet" href="./style.css">
 <script defer src="./words.js"></script>
 <script defer src="./topics.js"></script>
-<script defer src="./study.js?v=2"></script>
+<script defer src="./work_vocab.js"></script>
+<script defer src="./work_sentences.js"></script>
+<script defer src="./study.js?v=3"></script>
 </head>
 <body>
 <div class="shell">
 <header>
   <p class="eyebrow"><span lang="ja">日本語</span> <span> / </span> SỔ TAY TỪ VỰNG</p>
   <h1>Nihongo <em>1000</em></h1>
-  <p class="intro">Chọn một chủ đề, học tối đa 20 từ mỗi bài.</p>
+  <p class="intro">Chọn bộ học và chủ đề, tối đa 20 thẻ mỗi bài.</p>
   <div class="meter"><span id="progressLabel"></span><span id="dueLabel"></span></div>
   <progress id="progress" max="1000" value="0" aria-label="Tiến độ học"></progress>
 </header>
 <main>
+  <div class="controls">
+    <label for="collection">Bộ học</label>
+    <select id="collection">
+      <option value="general">1.000 từ thông dụng</option>
+      <option value="work-vocab">Công sở · 1.117 từ vựng</option>
+      <option value="work-sentences">Công sở · 128 mẫu câu</option>
+    </select>
+  </div>
   <nav aria-label="Chế độ học">
     <button data-mode="flash" aria-pressed="true">Flashcard</button>
     <button data-mode="quiz" aria-pressed="false">Trắc nghiệm</button>
     <button data-mode="review" aria-pressed="false">Đến hạn ôn</button>
-    <button data-mode="browse" aria-pressed="false">Tra từ</button>
+    <button data-mode="browse" aria-pressed="false">Tra cứu</button>
   </nav>
   <div class="controls" id="lessonBar">
     <label for="topic">Chủ đề</label><select id="topic"></select>
